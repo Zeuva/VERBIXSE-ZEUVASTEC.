@@ -248,7 +248,6 @@ function hostStartNextDeck() {
   Multi.started = true;
   clearMultiTimer();
   logLine(`Próximo cartão: ${next} — carregando automaticamente`);
-  // Avisa todos que um novo cartão começou e já inicia a primeira pergunta direto
   hostBroadcast({ type: 'NEW_ROUND', deck: Multi.deck, deckId: next, players: Multi.players, autoStart: true });
   hostStartQuestion(0);
 }
@@ -329,11 +328,9 @@ function guestHandleMessage(msg) {
     Multi.players = msg.players;
     Multi.currentIndex = -1;
     Multi.chosen = null;
-    // Se autoStart, já deixa como iniciado para receber a pergunta em seguida sem voltar ao lobby
     Multi.started = msg.autoStart ? true : false;
     Multi.finished = false;
     clearMultiTimer();
-    // Não precisa voltar para tela inicial — permanece na sala e aguarda a primeira pergunta (que o host já vai disparar)
     render();
   } else if (msg.type === 'GAME_OVER') {
     Multi.players = msg.players;
