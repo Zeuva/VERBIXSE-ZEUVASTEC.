@@ -1,0 +1,16 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.zeuvastec.verbixse",
+      "sha256_cert_fingerprints": [
+        "93:1B:6E:11:1A:BA:20:61:C2:84:7B:45:1D:D7:57:66:D4:EF:1C:B0:A5:14:32:1E:94:5D:E2:0B:C9:69:C6:6F",
+        "2A:66:A7:37:4A:44:BA:95:A1:2A:AE:44:2B:26:4B:40:FE:3E:E0:2A:45:88:81:15:13:5C:A0:A5:AC:D8:14:88",
+        "CF:DE:AE:7F:5B:27:0B:5D:E5:4A:6E:52:7A:AF:38:30:D1:CD:7A:73:E5:66:0F:A1:58:EB:61:5C:69:EA:B2:06"
+      ]
+    }
+  }
+]
