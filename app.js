@@ -1,5 +1,5 @@
 /* ============================================================
-   VERBIXSE — motor do jogo (vanilla JS, sem dependências de build).
+   SABIX — motor do jogo (vanilla JS, sem dependências de build).
    As perguntas em questions.js são usadas exatamente como estão
    — nenhum texto, opção ou resposta é alterado neste arquivo.
    ============================================================ */

@@ -1,5 +1,5 @@
 /* ============================================================
-   VERBIXSE — modo Multiplayer (PeerJS / WebRTC).
+   SABIX — modo Multiplayer (PeerJS / WebRTC).
 
    Princípio de design (corrige a classe de bug do jogo original):
    - O baralho (deck) é definido UMA vez pelo anfitrião e enviado

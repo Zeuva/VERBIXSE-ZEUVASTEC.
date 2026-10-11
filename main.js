@@ -1,5 +1,5 @@
 /* ============================================================
-   VERBIXSE — estado global, roteador de telas e tela inicial.
+   SABIX — estado global, roteador de telas e tela inicial.
    ============================================================ */
 
 const App = {
@@ -55,10 +55,10 @@ function wireDeckSeals(onSelect) {
 function renderHeader(activeMode) {
   return `<header class="header">
     <div class="brand">
-      <img class="brand-seal" src="icon-192.png" alt="VERBIXSE ZEUVASTEC" />
+      <img class="brand-seal" src="icon-192.png" alt="Sabix: Quiz Bíblico" />
       <div>
-        <div class="brand-name">VERBIXSE <b>ZEUVASTEC</b></div>
-        <div class="brand-tag">Perguntas bíblicas</div>
+        <div class="brand-name">SABIX <b>QUIZ BÍBLICO</b></div>
+        <div class="brand-tag">Zeuvastec Technology</div>
       </div>
     </div>
     <div class="header-actions">
@@ -89,7 +89,7 @@ function renderHome() {
       ${renderHeader('solo')}
       <section class="hero">
         <div class="hero-badge">📜 <b>${QUESTIONS.length}</b> perguntas · ${DECKS.length} cartões (C001 a C027) · sem repetir conteúdo original</div>
-        <h1 style="font-size:32px; line-height:1.1; letter-spacing:-0.02em;">VERBIXSE ZEUVASTEC <br><span style="font-size:0.55em; font-weight:400; opacity:0.85; letter-spacing:0.08em;">Technology</span></h1>
+        <h1 style="font-size:32px; line-height:1.1; letter-spacing:-0.02em;">Sabix: Quiz Bíblico <br><span style="font-size:0.55em; font-weight:400; opacity:0.85; letter-spacing:0.08em;">Zeuvastec Technology</span></h1>
         <p>Responda sozinho no seu ritmo, ou desafie amigos em tempo real. Escolha um cartão específico ou jogue com todas as perguntas.</p>
         <div class="hero-actions">
           <button class="btn btn-primary" id="start-solo">▶ Jogar Solo · ${count}Q</button>
@@ -108,7 +108,7 @@ function renderHome() {
         <div class="feature"><h3>Efeitos</h3><p>Animações de acerto/erro e confete ao concluir um cartão.</p></div>
       </div>
 
-      <p class="footer-note">VERBIXSE ZEUVASTEC · ${QUESTIONS.length} perguntas · ${DECKS.length} cartões · conteúdo original preservado</p>
+      <p class="footer-note">Sabix: Quiz Bíblico · Zeuvastec Technology · ${QUESTIONS.length} perguntas · ${DECKS.length} cartões · conteúdo original preservado</p>
     </div>
   `;
   wireHeader();

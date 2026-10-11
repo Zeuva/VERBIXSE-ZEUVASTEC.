@@ -1,4 +1,4 @@
-# 📜 VERBIXSE Trivia
+# 📜 Sabix: Quiz Bíblico
 
 Jogo de perguntas e respostas bíblicas, em português, com modo **Solo** e **Multiplayer em tempo real**.
 

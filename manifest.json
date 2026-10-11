@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "VERBIXSE ZEUVASTEC - Perguntas Biblicas",
-  "short_name": "VERBIXSE ZEUVASTEC",
+  "name": "Sabix: Quiz Bíblico",
+  "short_name": "Sabix",
   "description": "Jogo de perguntas e respostas biblicas. Jogue sozinho ou com amigos em tempo real, com som e efeitos visuais.",
   "start_url": "/",
   "display": "standalone",

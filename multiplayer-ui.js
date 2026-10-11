@@ -1,5 +1,5 @@
 /* ============================================================
-   VERBIXSE — telas do modo Multiplayer.
+   SABIX — telas do modo Multiplayer.
    ============================================================ */
 
 function renderMultiLobby() {
