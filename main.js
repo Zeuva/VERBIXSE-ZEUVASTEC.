@@ -79,6 +79,86 @@ function scrollActiveSealIntoView() {
   row.scrollLeft = Math.max(0, target);
 }
 
+// ---------- Instalar o app (iPhone e navegadores que permitem) ----------
+const Install = {
+  prompt: null, // evento beforeinstallprompt (Android/Chrome/Edge no navegador)
+  isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true ||
+      document.referrer.startsWith('android-app://');
+  },
+  isIOS() {
+    const ua = navigator.userAgent || '';
+    return /iphone|ipad|ipod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  },
+  available() {
+    if (this.isStandalone()) return null;
+    if (this.isIOS()) return 'ios';
+    if (this.prompt) return 'prompt';
+    return null;
+  }
+};
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  Install.prompt = e;
+  if (App.screen === 'home') render();
+});
+window.addEventListener('appinstalled', () => {
+  Install.prompt = null;
+  if (App.screen === 'home') render();
+});
+
+function installButtonHTML() {
+  const mode = Install.available();
+  if (!mode) return '';
+  const label = mode === 'ios' ? '📲 Instalar no iPhone' : '📲 Instalar o app';
+  return `<button class="btn btn-ghost" id="install-app">${label}</button>`;
+}
+
+function wireInstallButton() {
+  const btn = document.getElementById('install-app');
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    Sound.click();
+    if (Install.available() === 'prompt') {
+      Install.prompt.prompt();
+      try { await Install.prompt.userChoice; } catch (e) {}
+      Install.prompt = null;
+      render();
+    } else {
+      showIOSInstallHelp();
+    }
+  });
+}
+
+function showIOSInstallHelp() {
+  const ua = navigator.userAgent || '';
+  const notSafari = /CriOS|FxiOS|EdgiOS|OPiOS|Instagram|FBAN|FBAV|WhatsApp/i.test(ua);
+  const box = document.createElement('div');
+  box.className = 'modal-backdrop';
+  box.innerHTML = `
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Instalar no iPhone" style="text-align:left">
+      <div class="crown" style="text-align:center">📲</div>
+      <h2 style="text-align:center">Instalar no iPhone</h2>
+      ${notSafari ? `<p style="font-size:13.5px;color:var(--gold-bright);margin:0 0 12px">Se não encontrar a opção abaixo, abra este link no <b>Safari</b> e siga os passos.</p>` : ''}
+      <ol style="margin:0 0 18px;padding-left:20px;line-height:1.6;font-size:15px;color:var(--parchment)">
+        <li>Toque nos <b>três pontinhos (•••)</b> na parte de baixo da tela.</li>
+        <li>Toque em <b>Compartilhar</b> <span aria-hidden="true">(o quadrado com a seta para cima ⬆️)</span>.</li>
+        <li>Role as opções e toque em <b>Adicionar à Tela de Início</b>.</li>
+        <li>Toque em <b>Adicionar</b>. O ícone do Sabix aparece junto com seus outros apps.</li>
+      </ol>
+      <p style="font-size:12.5px;color:var(--muted);margin:-8px 0 16px">Em alguns iPhones, o botão Compartilhar ⬆️ já aparece direto na barra, sem os três pontinhos.</p>
+      <div class="modal-actions">
+        <button class="btn btn-primary btn-block" id="ios-install-ok">Entendi</button>
+      </div>
+    </div>`;
+  document.body.appendChild(box);
+  const close = () => box.remove();
+  box.querySelector('#ios-install-ok').addEventListener('click', close);
+  box.addEventListener('click', (e) => { if (e.target === box) close(); });
+}
+
 function renderHeader(activeMode) {
   return `<header class="header">
     <div class="brand">
@@ -121,6 +201,7 @@ function renderHome() {
         <div class="hero-actions">
           <button class="btn btn-primary" id="start-solo">▶ Jogar Solo · ${deckButtonLabel(App.deckId)} · ${count}Q</button>
           <button class="btn btn-secondary" id="start-multi">👥 Multiplayer · ${deckButtonLabel(App.deckId)} · ${count}Q</button>
+          ${installButtonHTML()}
         </div>
       </section>
 
@@ -140,6 +221,7 @@ function renderHome() {
   `;
   wireHeader();
   wireDeckSeals(renderHome);
+  wireInstallButton();
   document.getElementById('start-solo').addEventListener('click', () => startSolo());
   document.getElementById('start-multi').addEventListener('click', () => setScreen('multi-lobby'));
 }
