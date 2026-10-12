@@ -2,9 +2,21 @@
    SABIX — estado global, roteador de telas e tela inicial.
    ============================================================ */
 
+// Ao abrir o app, sorteia um cartão (evitando repetir o último sorteado),
+// para que cada partida não comece sempre com as mesmas perguntas.
+function pickStartDeck() {
+  const ids = DECKS.map((d) => d.id);
+  let last = null;
+  try { last = localStorage.getItem('sabix-last-start-deck'); } catch (e) {}
+  const pool = ids.length > 1 ? ids.filter((id) => id !== last) : ids;
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  try { localStorage.setItem('sabix-last-start-deck', pick); } catch (e) {}
+  return pick;
+}
+
 const App = {
   screen: 'home', // home | solo | multi-lobby | multi-room
-  deckId: 'ALL',
+  deckId: pickStartDeck(),
   playerName: localStorage.getItem('verbixse-name') || ''
 };
 
@@ -23,6 +35,9 @@ function setScreen(screen) { App.screen = screen; render(); }
 
 function deckLabel(deckId) { return deckId === 'ALL' ? 'Todos' : deckId; }
 
+// Texto curto para os botões de jogar: "Cartão 014" ou "Todas".
+function deckButtonLabel(deckId) { return deckId === 'ALL' ? 'Todas' : 'Cartão ' + deckId.replace('C', ''); }
+
 function nextDeckId(currentId) {
   const order = DECKS.map((d) => d.id);
   if (currentId === 'ALL') return order[0];
@@ -32,7 +47,8 @@ function nextDeckId(currentId) {
 }
 
 function renderDeckSeals(onSelect) {
-  const items = [{ id: 'ALL', count: QUESTIONS.length }, ...DECKS];
+  // "Todos" fica por último, depois de todos os cartões.
+  const items = [...DECKS, { id: 'ALL', count: QUESTIONS.length }];
   return `<div class="deck-row" role="tablist" aria-label="Selecionar cartão">
     ${items.map((d) => `
       <button class="seal ${App.deckId === d.id ? 'active' : ''}" role="tab" aria-selected="${App.deckId === d.id}" data-deck="${d.id}">
@@ -50,6 +66,17 @@ function wireDeckSeals(onSelect) {
       onSelect();
     });
   });
+  scrollActiveSealIntoView();
+}
+
+// Rola a fileira de cartões (só na horizontal) até o cartão selecionado,
+// para o jogador ver qual cartão está ativo e que existem outros.
+function scrollActiveSealIntoView() {
+  const row = root.querySelector('.deck-row');
+  const active = row && row.querySelector('.seal.active');
+  if (!row || !active) return;
+  const target = active.offsetLeft - (row.clientWidth - active.offsetWidth) / 2;
+  row.scrollLeft = Math.max(0, target);
 }
 
 function renderHeader(activeMode) {
@@ -90,10 +117,10 @@ function renderHome() {
       <section class="hero">
         <div class="hero-badge">📜 <b>${QUESTIONS.length}</b> perguntas · ${DECKS.length} cartões (C001 a C027) · sem repetir conteúdo original</div>
         <h1 style="font-size:32px; line-height:1.1; letter-spacing:-0.02em;">Sabix: Quiz Bíblico <br><span style="font-size:0.55em; font-weight:400; opacity:0.85; letter-spacing:0.08em;">Zeuvastec Technology</span></h1>
-        <p>Responda sozinho no seu ritmo, ou desafie amigos em tempo real. Escolha um cartão específico ou jogue com todas as perguntas.</p>
+        <p>Responda sozinho no seu ritmo, ou desafie amigos em tempo real. Escolha um cartão abaixo, ou toque em “Todos” no fim da fila para jogar com todas as perguntas.</p>
         <div class="hero-actions">
-          <button class="btn btn-primary" id="start-solo">▶ Jogar Solo · ${count}Q</button>
-          <button class="btn btn-secondary" id="start-multi">👥 Multiplayer · ${count}Q</button>
+          <button class="btn btn-primary" id="start-solo">▶ Jogar Solo · ${deckButtonLabel(App.deckId)} · ${count}Q</button>
+          <button class="btn btn-secondary" id="start-multi">👥 Multiplayer · ${deckButtonLabel(App.deckId)} · ${count}Q</button>
         </div>
       </section>
 
