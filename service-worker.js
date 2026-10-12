@@ -1,4 +1,4 @@
-const CACHE_NAME = 'verbixse-zeuvastec-v5';
+const CACHE_NAME = 'verbixse-zeuvastec-v6';
 const APP_FILES = [
   './', './index.html', './style.css',
   './questions.js', './app.js', './solo.js', './multiplayer.js', './multiplayer-ui.js', './main.js',
