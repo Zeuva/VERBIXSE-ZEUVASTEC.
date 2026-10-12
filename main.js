@@ -195,7 +195,7 @@ function renderHome() {
     <div class="app">
       ${renderHeader('solo')}
       <section class="hero">
-        <div class="hero-badge">📜 <b>${QUESTIONS.length}</b> perguntas · ${DECKS.length} cartões (C001 a C027) · sem repetir conteúdo original</div>
+        <div class="hero-badge">📜 <b>${QUESTIONS.length}</b> perguntas · ${DECKS.length} cartões (${DECKS[0].id} a ${DECKS[DECKS.length - 1].id}) · sem repetir conteúdo original</div>
         <h1 style="font-size:32px; line-height:1.1; letter-spacing:-0.02em;">Sabix: Quiz Bíblico <br><span style="font-size:0.55em; font-weight:400; opacity:0.85; letter-spacing:0.08em;">Zeuvastec Technology</span></h1>
         <p>Responda sozinho no seu ritmo, ou desafie amigos em tempo real. Escolha um cartão abaixo, ou toque em “Todos” no fim da fila para jogar com todas as perguntas.</p>
         <div class="hero-actions">
