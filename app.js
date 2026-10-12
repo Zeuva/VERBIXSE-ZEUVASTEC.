@@ -14,7 +14,8 @@ const DECKS = [
   { id: 'C018', count: 7 }, { id: 'C019', count: 7 }, { id: 'C020', count: 8 },
   { id: 'C021', count: 7 }, { id: 'C022', count: 8 }, { id: 'C023', count: 9 },
   { id: 'C024', count: 10 }, { id: 'C025', count: 9 }, { id: 'C026', count: 9 },
-  { id: 'C027', count: 8 }
+  { id: 'C027', count: 8 }, { id: 'C028', count: 10 }, { id: 'C029', count: 10 },
+  { id: 'C030', count: 10 }
 ];
 
 function questionsForDeck(deckId) {
