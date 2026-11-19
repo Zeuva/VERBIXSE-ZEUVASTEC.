@@ -26,7 +26,11 @@ ${App.inviteCode ? `      <div class="panel">
         ${App.inviteCode ? `<p style="font-size:13px;color:var(--gold-bright);margin:0 0 12px">📲 Você recebeu um convite! O código já está preenchido. Digite seu nome acima e toque em <b>Entrar na sala</b>.</p>` : ''}
         <div class="field">
           <label>Código da sala</label>
-          <input id="room-code" type="text" maxlength="6" placeholder="Ex: A3F9K2" value="${App.inviteCode || ''}" style="text-transform:uppercase;letter-spacing:.1em" />
+          <div style="display:flex;gap:8px">
+            <input id="room-code" type="text" maxlength="6" placeholder="Ex: A3F9K2" value="${App.inviteCode || ''}" style="text-transform:uppercase;letter-spacing:.1em;flex:1;min-width:0" />
+            <button class="btn btn-ghost" id="paste-code" type="button" style="flex:none">📋 Colar</button>
+          </div>
+          <div class="field-hint">Pode colar a mensagem inteira do convite: o código é achado sozinho.</div>
         </div>
         <button class="btn btn-secondary btn-block" id="join-room" ${Multi.connecting ? 'disabled' : ''}>
           ${Multi.connecting && Multi.pendingAction === 'join' ? 'Entrando…' : '🔑 Entrar na sala'}
@@ -76,7 +80,11 @@ ${App.inviteCode ? `      <div class="panel">
         ${App.inviteCode ? `<p style="font-size:13px;color:var(--gold-bright);margin:0 0 12px">📲 Você recebeu um convite! O código já está preenchido. Digite seu nome acima e toque em <b>Entrar na sala</b>.</p>` : ''}
         <div class="field">
           <label>Código da sala</label>
-          <input id="room-code" type="text" maxlength="6" placeholder="Ex: A3F9K2" value="${App.inviteCode || ''}" style="text-transform:uppercase;letter-spacing:.1em" />
+          <div style="display:flex;gap:8px">
+            <input id="room-code" type="text" maxlength="6" placeholder="Ex: A3F9K2" value="${App.inviteCode || ''}" style="text-transform:uppercase;letter-spacing:.1em;flex:1;min-width:0" />
+            <button class="btn btn-ghost" id="paste-code" type="button" style="flex:none">📋 Colar</button>
+          </div>
+          <div class="field-hint">Pode colar a mensagem inteira do convite: o código é achado sozinho.</div>
         </div>
         <button class="btn btn-secondary btn-block" id="join-room" ${Multi.connecting ? 'disabled' : ''}>
           ${Multi.connecting && Multi.pendingAction === 'join' ? 'Entrando…' : '🔑 Entrar na sala'}
@@ -91,6 +99,18 @@ ${App.inviteCode ? `      <div class="panel">
   wireDeckSeals(renderMultiLobby);
   const nameInput = document.getElementById('player-name');
   if (App.inviteCode && !nameInput.value) nameInput.focus();
+  const codeInput = document.getElementById('room-code');
+  codeInput.addEventListener('paste', (e) => {
+    const t = (e.clipboardData || window.clipboardData)?.getData('text');
+    const c = codigoDaSala(t);
+    if (c) { e.preventDefault(); codeInput.value = c; }
+  });
+  document.getElementById('paste-code').addEventListener('click', async () => {
+    try {
+      const c = codigoDaSala(await navigator.clipboard.readText());
+      if (c) codeInput.value = c; else codeInput.focus();
+    } catch (e) { codeInput.focus(); }
+  });
   nameInput.addEventListener('input', () => { Multi.myName = nameInput.value; localStorage.setItem('verbixse-name', Multi.myName); });
   document.getElementById('create-room').addEventListener('click', () => {
     Multi.myName = nameInput.value;
