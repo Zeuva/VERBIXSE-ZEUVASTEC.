@@ -20,13 +20,26 @@ const App = {
   playerName: localStorage.getItem('verbixse-name') || ''
 };
 
-// Convite pelo WhatsApp: quem toca no link .../?sala=A3F9K2 cai direto no
-// Multiplayer com o código da sala já preenchido.
+// Convite pelo WhatsApp (mesmo jeito do Zeuvastec Finance): quem toca no link
+// .../#sala-A3F9K2 cai direto no Multiplayer com o código da sala já preenchido.
+// Também aceita links antigos no formato .../?sala=A3F9K2.
+
+// Acha o código da sala dentro de qualquer texto (mensagem inteira do WhatsApp ou link).
+function codigoDaSala(texto) {
+  const t = String(texto || '').toUpperCase();
+  const m = t.match(/SALA[=\-]([A-Z0-9]{6})(?![A-Z0-9])/) ||
+            t.match(/C[OÓ]DIGO(?: DA SALA)?:\s*([A-Z0-9]{6})(?![A-Z0-9])/);
+  if (m) return m[1];
+  const limpo = t.replace(/[^A-Z0-9]/g, '');
+  return limpo.length <= 6 ? limpo : '';
+}
+
 function readInviteCode() {
   try {
-    const params = new URLSearchParams(location.search);
-    const code = (params.get('sala') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
-    if (code) history.replaceState(null, '', location.pathname);
+    let code = '';
+    if (location.hash.toLowerCase().startsWith('#sala-')) code = codigoDaSala(location.hash.slice(1));
+    if (!code) code = codigoDaSala('sala=' + (new URLSearchParams(location.search).get('sala') || ''));
+    if (location.hash || location.search) history.replaceState(null, '', location.pathname);
     return code;
   } catch (e) { return ''; }
 }
@@ -34,18 +47,24 @@ App.inviteCode = readInviteCode();
 if (App.inviteCode) App.screen = 'multi-lobby';
 
 function inviteLink(code) {
-  return location.origin + '/?sala=' + encodeURIComponent(code);
+  return location.origin + '/#sala-' + code;
 }
 
 function inviteText(code) {
-  return 'Vem jogar Sabix: Quiz Bíblico comigo! 🎉\n'
+  return 'Vem jogar Sabix: Quiz Bíblico comigo! 🎉\n\n'
     + 'Toque no link para entrar na minha sala:\n'
     + inviteLink(code) + '\n\n'
-    + 'Código da sala: ' + code;
+    + 'Ou digite o código: ' + code;
 }
 
-function shareRoomOnWhatsApp(code) {
-  const url = 'https://wa.me/?text=' + encodeURIComponent(inviteText(code));
+// No celular abre a tela de compartilhar (WhatsApp aparece entre as opções);
+// sem ela, abre o WhatsApp direto com a mensagem pronta.
+async function shareRoomOnWhatsApp(code) {
+  const text = inviteText(code);
+  if (navigator.share) {
+    try { await navigator.share({ text }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  const url = 'https://wa.me/?text=' + encodeURIComponent(text);
   const win = window.open(url, '_blank');
   if (!win) location.href = url;
 }
