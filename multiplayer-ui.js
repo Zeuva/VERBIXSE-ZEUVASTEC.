@@ -13,7 +13,42 @@ function renderMultiLobby() {
         <p>Crie uma sala e compartilhe o código, ou entre com um código que você recebeu.</p>
       </section>
 
+${App.inviteCode ? `      <div class="panel">
+        <h3>Seu nome</h3>
+        <div class="field">
+          <input id="player-name" type="text" maxlength="18" placeholder="Ex: João" value="${Multi.myName || ''}" />
+          <div class="field-hint">Aparecerá para os outros jogadores na sala.</div>
+        </div>
+      </div>
+
+      <div class="panel" ${App.inviteCode ? 'style="border-color:var(--gold)"' : ''}>
+        <h3>Entrar em uma sala</h3>
+        ${App.inviteCode ? `<p style="font-size:13px;color:var(--gold-bright);margin:0 0 12px">📲 Você recebeu um convite! O código já está preenchido. Digite seu nome acima e toque em <b>Entrar na sala</b>.</p>` : ''}
+        <div class="field">
+          <label>Código da sala</label>
+          <input id="room-code" type="text" maxlength="6" placeholder="Ex: A3F9K2" value="${App.inviteCode || ''}" style="text-transform:uppercase;letter-spacing:.1em" />
+        </div>
+        <button class="btn btn-secondary btn-block" id="join-room" ${Multi.connecting ? 'disabled' : ''}>
+          ${Multi.connecting && Multi.pendingAction === 'join' ? 'Entrando…' : '🔑 Entrar na sala'}
+        </button>
+      </div>
+
       <div class="decks">
+        <div class="decks-label">Cartão da partida (vale para a sala que você criar)</div>
+        ${renderDeckSeals()}
+      </div>
+
+      ${Multi.error ? `<div class="panel" style="border-color:var(--wine-bright)"><p style="color:var(--wine-bright);margin:0;font-size:14px">⚠ ${Multi.error}</p></div>` : ''}
+
+      <div class="panel">
+        <h3>Criar uma sala nova</h3>
+        <p style="font-size:13px;color:var(--parchment-dim);margin:0 0 14px">Cartão selecionado: <b style="color:var(--gold-bright)">${deckLabel(App.deckId)} · ${count}Q</b></p>
+        <button class="btn btn-primary btn-block" id="create-room" ${Multi.connecting ? 'disabled' : ''}>
+          ${Multi.connecting && Multi.pendingAction === 'create' ? 'Criando sala…' : '👑 Criar sala'}
+        </button>
+      </div>
+
+` : `      <div class="decks">
         <div class="decks-label">Cartão da partida (vale para a sala que você criar)</div>
         ${renderDeckSeals()}
       </div>
@@ -36,23 +71,26 @@ function renderMultiLobby() {
         </button>
       </div>
 
-      <div class="panel">
+      <div class="panel" ${App.inviteCode ? 'style="border-color:var(--gold)"' : ''}>
         <h3>Entrar em uma sala</h3>
+        ${App.inviteCode ? `<p style="font-size:13px;color:var(--gold-bright);margin:0 0 12px">📲 Você recebeu um convite! O código já está preenchido. Digite seu nome acima e toque em <b>Entrar na sala</b>.</p>` : ''}
         <div class="field">
           <label>Código da sala</label>
-          <input id="room-code" type="text" maxlength="6" placeholder="Ex: A3F9K2" style="text-transform:uppercase;letter-spacing:.1em" />
+          <input id="room-code" type="text" maxlength="6" placeholder="Ex: A3F9K2" value="${App.inviteCode || ''}" style="text-transform:uppercase;letter-spacing:.1em" />
         </div>
         <button class="btn btn-secondary btn-block" id="join-room" ${Multi.connecting ? 'disabled' : ''}>
           ${Multi.connecting && Multi.pendingAction === 'join' ? 'Entrando…' : '🔑 Entrar na sala'}
         </button>
       </div>
 
+`}
       <p class="footer-note">Multiplayer via conexão direta (PeerJS). Funciona melhor com internet estável.</p>
     </div>
   `;
   wireHeader();
   wireDeckSeals(renderMultiLobby);
   const nameInput = document.getElementById('player-name');
+  if (App.inviteCode && !nameInput.value) nameInput.focus();
   nameInput.addEventListener('input', () => { Multi.myName = nameInput.value; localStorage.setItem('verbixse-name', Multi.myName); });
   document.getElementById('create-room').addEventListener('click', () => {
     Multi.myName = nameInput.value;
@@ -63,6 +101,7 @@ function renderMultiLobby() {
     Multi.myName = nameInput.value;
     Multi.pendingAction = 'join';
     const code = document.getElementById('room-code').value;
+    App.inviteCode = '';
     guestJoinRoom(code);
   });
 }
@@ -111,6 +150,9 @@ function renderMultiWaiting() {
         <div class="decks-label">Código da sala</div>
         <div style="font-family:'Spectral',serif;font-size:40px;font-weight:700;letter-spacing:.12em;color:var(--gold-bright);margin:6px 0 4px">${Multi.roomCode}</div>
         <p style="font-size:13px;color:var(--parchment-dim);margin:0 0 18px">Compartilhe esse código para outras pessoas entrarem · Cartão ${deckLabel(App.deckId)} · ${Multi.deck.length}Q</p>
+        <button class="btn btn-primary btn-block" id="share-whatsapp">📲 Enviar convite pelo WhatsApp</button>
+        <button class="btn btn-secondary btn-block" id="copy-invite" style="margin-top:10px">📋 Copiar convite</button>
+        <p style="font-size:12px;color:var(--muted);margin:10px 0 0">Quem tocar no link do convite já entra com o código preenchido.</p>
       </div>
 
       <div class="panel">
@@ -133,6 +175,9 @@ function renderMultiWaiting() {
     </div>
   `;
   wireHeader();
+  document.getElementById('share-whatsapp').addEventListener('click', () => shareRoomOnWhatsApp(Multi.roomCode));
+  const copyBtn = document.getElementById('copy-invite');
+  copyBtn.addEventListener('click', () => copyRoomInvite(Multi.roomCode, copyBtn));
   if (Multi.isHost) document.getElementById('start-game').addEventListener('click', () => hostStartGame());
   document.getElementById('leave-room').addEventListener('click', () => (Multi.isHost ? hostLeave() : guestLeave()));
 }
