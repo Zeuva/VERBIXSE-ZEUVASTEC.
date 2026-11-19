@@ -20,6 +20,49 @@ const App = {
   playerName: localStorage.getItem('verbixse-name') || ''
 };
 
+// Convite pelo WhatsApp: quem toca no link .../?sala=A3F9K2 cai direto no
+// Multiplayer com o código da sala já preenchido.
+function readInviteCode() {
+  try {
+    const params = new URLSearchParams(location.search);
+    const code = (params.get('sala') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+    if (code) history.replaceState(null, '', location.pathname);
+    return code;
+  } catch (e) { return ''; }
+}
+App.inviteCode = readInviteCode();
+if (App.inviteCode) App.screen = 'multi-lobby';
+
+function inviteLink(code) {
+  return location.origin + '/?sala=' + encodeURIComponent(code);
+}
+
+function inviteText(code) {
+  return 'Vem jogar Sabix: Quiz Bíblico comigo! 🎉\n'
+    + 'Toque no link para entrar na minha sala:\n'
+    + inviteLink(code) + '\n\n'
+    + 'Código da sala: ' + code;
+}
+
+function shareRoomOnWhatsApp(code) {
+  const url = 'https://wa.me/?text=' + encodeURIComponent(inviteText(code));
+  const win = window.open(url, '_blank');
+  if (!win) location.href = url;
+}
+
+async function copyRoomInvite(code, btn) {
+  const text = inviteText(code);
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (e) {
+    const area = document.createElement('textarea');
+    area.value = text; document.body.appendChild(area); area.select();
+    try { document.execCommand('copy'); } catch (err) {}
+    area.remove();
+  }
+  if (btn) { const old = btn.textContent; btn.textContent = '✔ Convite copiado'; setTimeout(() => { btn.textContent = old; }, 2000); }
+}
+
 const root = document.getElementById('app');
 
 function totalFor(deckId) { return questionsForDeck(deckId).length; }
