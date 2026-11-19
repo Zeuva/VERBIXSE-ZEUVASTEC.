@@ -34,8 +34,39 @@ const Multi = {
   timerHandle: null,
   log: [],
   error: null,
-  connecting: false
+  connecting: false,
+  online: false            // true depois que a sala abriu (host) ou que entrou (convidado)
 };
+
+// Quando o jogador sai do app (por exemplo, para mandar o convite no WhatsApp),
+// o celular pode cortar a ligação com o servidor do PeerJS. As conexões com os
+// jogadores continuam; só é preciso reconectar ao servidor, sem derrubar a sala.
+const PEER_ERROS_PASSAGEIROS = ['network', 'disconnected', 'socket-error', 'socket-closed', 'server-error'];
+
+function reconectarPeer(peer) {
+  if (!peer || peer.destroyed || Multi.peer !== peer || !peer.disconnected) return;
+  try { peer.reconnect(); } catch (e) {}
+}
+
+function manterPeerVivo(peer) {
+  peer.on('disconnected', () => {
+    if (peer.destroyed || Multi.peer !== peer) return;
+    logLine('Conexão oscilou — reconectando…');
+    setTimeout(() => reconectarPeer(peer), 1500);
+  });
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') reconectarPeer(Multi.peer);
+});
+window.addEventListener('online', () => reconectarPeer(Multi.peer));
+
+function mensagemErroPeer(prefixo, type, err) {
+  if (type === 'network' || type === 'socket-error' || type === 'socket-closed' || type === 'server-error') {
+    return 'Sem conexão com o serviço do multiplayer. Verifique a internet e tente de novo.';
+  }
+  return prefixo + (type || err?.message || 'erro desconhecido');
+}
 
 function resetMulti() {
   if (typeof lastUnfurledIndex !== 'undefined') lastUnfurledIndex = -1;
@@ -56,6 +87,7 @@ function resetMulti() {
   Multi.log = [];
   Multi.error = null;
   Multi.connecting = false;
+  Multi.online = false;
 }
 
 function logLine(msg) {
@@ -126,10 +158,24 @@ async function hostCreateRoom() {
   const peer = new Peer(Multi.roomCode, peerOptions());
   Multi.peer = peer;
 
-  peer.on('open', () => { Multi.connecting = false; logLine(`Sala ${Multi.roomCode} criada`); setScreen('multi-room'); });
-  peer.on('error', (err) => {
+  manterPeerVivo(peer);
+  peer.on('open', () => {
     Multi.connecting = false;
-    Multi.error = 'Falha ao criar sala: ' + (err?.type || err?.message || 'erro desconhecido');
+    if (Multi.online) { logLine('Reconectado'); if (!Multi.started) render(); return; }
+    Multi.online = true;
+    logLine(`Sala ${Multi.roomCode} criada`);
+    setScreen('multi-room');
+  });
+  peer.on('error', (err) => {
+    const type = err?.type || '';
+    // Sala já aberta: oscilação de rede não derruba a sala, só reconecta.
+    if (Multi.online && PEER_ERROS_PASSAGEIROS.includes(type)) {
+      logLine('Sem internet por um instante — tentando reconectar…');
+      setTimeout(() => reconectarPeer(peer), 1500);
+      return;
+    }
+    Multi.connecting = false;
+    Multi.error = mensagemErroPeer('Falha ao criar sala: ', type, err);
     render();
   });
   peer.on('connection', (conn) => hostRegisterConnection(conn));
@@ -280,13 +326,16 @@ async function guestJoinRoom(code) {
 
   const peer = new Peer(peerOptions());
   Multi.peer = peer;
+  manterPeerVivo(peer);
 
   peer.on('open', (id) => {
+    if (Multi.online) return; // reconexão ao servidor: a conexão com a sala continua
     Multi.myId = id;
     const conn = peer.connect(roomCode, { reliable: true });
     Multi.conn = conn;
     conn.on('open', () => {
       Multi.connecting = false;
+      Multi.online = true;
       conn.send({ type: 'JOIN', name: Multi.myName });
       logLine(`Conectado à sala ${roomCode}`);
       setScreen('multi-room');
@@ -296,10 +345,14 @@ async function guestJoinRoom(code) {
     conn.on('error', () => { Multi.connecting = false; Multi.error = 'Falha na conexão com a sala.'; render(); });
   });
   peer.on('error', (err) => {
-    Multi.connecting = false;
     const type = err?.type || '';
+    if (Multi.online && PEER_ERROS_PASSAGEIROS.includes(type)) {
+      setTimeout(() => reconectarPeer(peer), 1500);
+      return;
+    }
+    Multi.connecting = false;
     if (type === 'peer-unavailable') Multi.error = 'Sala não encontrada. Confira o código e tente de novo.';
-    else Multi.error = 'Falha ao conectar: ' + (type || err?.message || 'erro desconhecido');
+    else Multi.error = mensagemErroPeer('Falha ao conectar: ', type, err);
     render();
   });
 }
